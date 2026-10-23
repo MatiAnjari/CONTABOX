@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block titulo %}Trabajadores{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Trabajadores</h1>
+  <a class="btn btn-marca" href="{{ url_for('admin.nuevo_trabajador') }}">Nuevo trabajador</a>
+</div>
+{% set pestanas = [('PENDIENTE', 'Solicitudes'), ('ACTIVO', 'Activos'), ('BAJA', 'Dados de baja'), ('RECHAZADO', 'Rechazados')] %}
+<ul class="nav nav-tabs mb-3 flex-nowrap overflow-auto">
+  {% for valor, texto in pestanas %}
+  <li class="nav-item">
+    <a class="nav-link text-nowrap {{ 'active' if estado == valor }}" href="{{ url_for('admin.trabajadores', estado=valor) }}">
+      {{ texto }} <span class="badge text-bg-{{ 'warning' if valor == 'PENDIENTE' and conteo.get(valor) else 'secondary' }}">{{ conteo.get(valor, 0) }}</span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+<div class="card">
+  <div class="table-responsive">
+  <table class="table table-hover mb-0">
+    <thead><tr><th>Nombre</th><th>RUT</th><th>Rol</th><th>Solicitud</th><th>Último ingreso</th><th class="text-end">Acciones</th></tr></thead>
+    <tbody>
+    {% for t in lista %}
+      <tr>
+        <td><a href="{{ url_for('admin.ficha', usuario_id=t.id) }}">{{ t.nombre }} {{ t.apellido }}</a>
+          {% if t.debe_cambiar_password %}<span class="badge text-bg-light border">clave temporal</span>{% endif %}</td>
+        <td>{{ t.rut | rut }}</td>
+        <td>{{ t.nombre_rol }}</td>
+        <td>{{ t.creado_en | fecha }}</td>
+        <td>{{ t.ultimo_ingreso | fecha }}</td>
+        <td class="text-end text-nowrap">{% include "admin/_acciones.html" %}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6" class="text-muted text-center py-4">No hay trabajadores en esta lista.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

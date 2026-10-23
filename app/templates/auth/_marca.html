@@ -1,0 +1,11 @@
+<div class="text-center mb-4">
+  {% if marca and marca.logo_url %}
+    <img src="{{ url_for('static', filename=marca.logo_url) }}" alt="Logo" class="logo-login mb-2">
+  {% elif not marca %}
+    <img src="{{ url_for('static', filename='img/logo-contabox.png') }}" alt="ContaBox · Gestión de inventario, venta y bodega" class="logo-contabox">
+  {% endif %}
+  {% if marca %}
+    <h1 class="marca-login display-6 mb-0">{{ marca.nombre_fantasia }}</h1>
+    <p class="text-body-secondary mb-0">Ingreso de trabajadores</p>
+  {% endif %}
+</div>

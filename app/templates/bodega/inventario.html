@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block titulo %}Existencias{% endblock %}
+{% block contenido %}
+<h1 class="h3">Bodega</h1>
+{% include "bodega/_nav.html" %}
+<form class="row g-2 mb-3" method="get">
+  <div class="col-12 col-md-4"><input class="form-control" name="q" value="{{ buscar }}" placeholder="Buscar por SKU, nombre o marca"></div>
+  <div class="col-6 col-md-2"><select class="form-select" name="categoria"><option value="">Todas las categorías</option>
+    {% for c in categorias %}<option value="{{ c.id }}" {{ 'selected' if categoria_id == c.id }}>{{ c.nombre }}</option>{% endfor %}</select></div>
+  <div class="col-6 col-md-2"><select class="form-select" name="marca"><option value="">Todas las marcas</option>
+    {% for m in marcas %}<option value="{{ m.id }}" {{ 'selected' if marca_id == m.id }}>{{ m.nombre }}</option>{% endfor %}</select></div>
+  <div class="col-auto"><button class="btn btn-marca">Filtrar</button></div>
+  <div class="col-auto">
+    {% if criticos %}<a class="btn btn-outline-secondary" href="{{ url_for('bodega.inventario') }}">Ver todos</a>
+    {% else %}<a class="btn btn-outline-danger" href="{{ url_for('bodega.inventario', criticos=1) }}">Solo stock crítico{% if alertas %} ({{ alertas }}){% endif %}</a>{% endif %}
+  </div>
+</form>
+{% if alertas and not criticos %}
+<div class="alert alert-warning py-2">{{ alertas }} producto{{ 's' if alertas > 1 }} en stock crítico o agotado{{ 's' if alertas > 1 }}.</div>
+{% endif %}
+{% if por_vencer %}
+<div class="alert alert-danger py-2">
+  <strong>Lotes por vencer (próximos {{ dias_alerta }} días):</strong>
+  {% for l in por_vencer %}
+    <span class="d-inline-block me-3">{{ l.nombre }} ({{ l.marca }}) · lote {{ l.numero_lote }} · {{ l.cantidad_disponible }} u. ·
+      {% if l.dias < 0 %}<strong>vencido hace {{ -l.dias }} día{{ 's' if l.dias < -1 }}</strong>{% elif l.dias == 0 %}<strong>vence hoy</strong>{% else %}vence en {{ l.dias }} día{{ 's' if l.dias > 1 }}{% endif %}</span>
+  {% endfor %}
+</div>
+{% endif %}
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0 align-middle">
+  <thead><tr><th>SKU</th><th>Producto</th><th>Categoría</th><th class="text-end">Precio</th><th class="text-end">Bodega</th><th class="text-end">Tienda</th>
+    <th class="text-end">Total disponible</th><th class="text-end">Vendidas</th><th class="text-end">Perdidas</th><th class="text-end">Valor stock</th><th></th></tr></thead>
+  <tbody>
+  {% for p in productos %}
+    {% set critico = p.stock_total <= p.stock_critico %}
+    <tr class="{{ 'table-danger' if p.stock_total == 0 else ('table-warning' if critico) }}">
+      <td class="text-nowrap">{{ p.codigo_sku }}</td>
+      <td><a href="{{ url_for('bodega.producto', producto_id=p.id) }}">{{ p.nombre }}</a> <span class="text-muted small">{{ p.marca }}</span>
+        {% if p.stock_total == 0 %}<span class="badge text-bg-danger">Agotado</span>{% elif critico %}<span class="badge text-bg-warning">Crítico</span>{% endif %}
+        {% if p.es_perecible == 1 %}<span class="badge text-bg-light border">Perecible{% if p.proximo_vencimiento %} · vence {{ p.proximo_vencimiento | dia }}{% endif %}</span>{% endif %}
+        {% if p.meses_garantia %}<span class="badge badge-garantia">Garantía {{ p.meses_garantia }} m</span>{% endif %}</td>
+      <td class="small">{{ p.categoria }}</td>
+      <td class="text-end">{{ p.precio_venta | pesos }}</td>
+      <td class="text-end">{{ p.stock_bodega }}{% if p.unidades_por_bulto > 1 %}<div class="small text-muted text-nowrap">{{ p.cajas_bodega }}</div>{% endif %}</td>
+      <td class="text-end">{{ p.stock_tienda }}</td>
+      <td class="text-end fw-semibold">{{ p.stock_total }} u.{% if p.unidades_por_bulto > 1 %}<div class="small text-muted fw-normal text-nowrap">{{ p.cajas_total }} (cajas de {{ p.unidades_por_bulto }})</div>{% endif %}</td>
+      <td class="text-end">{{ p.vendidas }}</td><td class="text-end">{{ p.perdidas }}</td>
+      <td class="text-end">{{ p.valor_inventario | pesos }}</td>
+      <td class="text-end text-nowrap"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('bodega.transferencias', sku=p.codigo_sku) }}">A tienda</a></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="11" class="text-center text-muted py-4">No hay productos. Registra el primero en <a href="{{ url_for('bodega.lotes') }}">Recepción de lotes</a>.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div></div>
+{% endblock %}

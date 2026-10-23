@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "macros.html" import filtro_fechas %}
+{% block titulo %}Auditoría de pérdidas{% endblock %}
+{% block contenido %}
+<h1 class="h3">Auditoría de pérdidas</h1>
+{% set extra %}
+  <div class="col-12 col-md-auto"><label class="form-label small mb-0">Motivo</label>
+    <select class="form-select" name="motivo"><option value="">Todos</option>
+      {% for k, v in motivos.items() %}<option value="{{ k }}" {{ 'selected' if motivo == k }}>{{ v }}</option>{% endfor %}
+    </select></div>
+{% endset %}
+{{ filtro_fechas(desde, hasta, extra) }}
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3"><div class="card p-3"><span class="text-muted small">Unidades perdidas</span><span class="kpi">{{ total.unidades }}</span></div></div>
+  <div class="col-6 col-md-3"><div class="card p-3"><span class="text-muted small">Inversión perdida</span><span class="kpi text-danger">{{ total.costo | pesos }}</span></div></div>
+</div>
+<div class="card"><div class="table-responsive">
+  <table class="table table-sm table-hover mb-0">
+    <thead><tr><th>Fecha</th><th>SKU</th><th>Producto</th><th class="text-end">Unidades</th><th>Motivo</th><th>Justificación</th><th>Origen</th><th class="text-end">Costo</th><th>Responsable</th></tr></thead>
+    <tbody>
+    {% for f in filas %}
+      <tr><td class="text-nowrap">{{ f.fecha_hora | fecha }}</td><td>{{ f.codigo_sku }}</td><td>{{ f.nombre }}</td><td class="text-end">{{ f.cantidad }}</td>
+        <td>{{ motivos[f.motivo] }}</td><td class="small">{{ f.observacion or '—' }}</td><td>{{ f.origen | etiqueta }}</td>
+        <td class="text-end text-danger">{{ f.costo_total | pesos }}</td><td>{{ f.responsable }}</td></tr>
+    {% else %}<tr><td colspan="9" class="text-muted text-center py-4">Sin pérdidas en el período.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}

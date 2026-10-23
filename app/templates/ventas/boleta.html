@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% from "macros.html" import badge_estado %}
+{% block titulo %}{{ tipos[v.tipo_documento] }} N° {{ v.folio }}{% endblock %}
+{% block contenido %}
+{% set tipo = tipos[v.tipo_documento] %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 no-print">
+  <a href="{{ url_for('ventas.historial') }}" class="small">&larr; Ventas</a>
+  <div class="d-flex gap-2">
+    {% if not es_admin %}<a class="btn btn-marca" href="{{ url_for('ventas.pos') }}">Nueva venta</a>{% endif %}
+    <a class="btn btn-outline-primary" href="{{ url_for('ventas.pdf', venta_id=v.id) }}">Descargar PDF</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('ventas.pdf', venta_id=v.id, ver=1) }}" target="_blank" rel="noopener">Ver / imprimir</a>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card p-4 boleta">
+      <div class="d-flex flex-wrap justify-content-between gap-3 mb-3">
+        <div class="d-flex gap-3 align-items-start">
+          {% if empresa_actual.logo_url %}<img src="{{ url_for('static', filename=empresa_actual.logo_url) }}" class="logo-doc" alt="">{% endif %}
+          <div class="small">
+            <div class="fw-bold fs-6 text-marca">{{ empresa_actual.nombre_fantasia }}</div>
+            <div>{{ empresa_actual.razon_social }}</div>
+            <div>RUT {{ empresa_actual.rut | rut }}</div>
+            {% if empresa_actual.direccion %}<div>{{ empresa_actual.direccion }}</div>{% endif %}
+            {% if empresa_actual.telefono %}<div>Tel. {{ empresa_actual.telefono }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="caja-folio text-center">
+          <div class="small fw-bold">R.U.T.: {{ empresa_actual.rut | rut }}</div>
+          <div class="fs-5 fw-bold">{{ tipo | upper }}</div>
+          <div class="fw-bold">N° {{ v.folio }}</div>
+        </div>
+      </div>
+      <dl class="row small mb-3 datos-doc">
+        <dt class="col-4 col-md-3">Fecha y hora</dt><dd class="col-8 col-md-9">{{ v.fecha_hora.strftime('%d/%m/%Y %H:%M:%S') }} {{ badge_estado(v.estado) }}</dd>
+        <dt class="col-4 col-md-3">Vendedor</dt><dd class="col-8 col-md-9">{{ v.vendedor }} (RUT {{ v.rut_vendedor | rut }})</dd>
+        <dt class="col-4 col-md-3">Medio de pago</dt><dd class="col-8 col-md-9">{{ medios[v.medio_pago] }}</dd>
+        {% if v.tipo_documento == 'FACTURA' %}
+        <dt class="col-4 col-md-3">Cliente</dt><dd class="col-8 col-md-9">{{ v.cliente_razon_social }} (RUT {{ v.cliente_rut | rut }})</dd>
+        <dt class="col-4 col-md-3">Giro</dt><dd class="col-8 col-md-9">{{ v.cliente_giro }}</dd>
+        <dt class="col-4 col-md-3">Dirección</dt><dd class="col-8 col-md-9">{{ v.cliente_direccion }}</dd>
+        {% endif %}
+      </dl>
+      <div class="table-responsive">
+      <table class="table table-sm">
+        <thead><tr><th>SKU</th><th>Producto</th><th>Marca</th><th class="text-end">Cant.</th><th class="text-end">P. unit.</th><th class="text-end">Subtotal</th></tr></thead>
+        <tbody>{% for d in v.detalle %}
+          <tr><td>{{ d.codigo_sku }}</td><td>{{ d.nombre }}</td><td>{{ d.marca }}</td><td class="text-end">{{ d.cantidad }}</td>
+            <td class="text-end">{{ d.precio_unitario | pesos }}</td><td class="text-end">{{ d.subtotal | pesos }}</td></tr>
+        {% endfor %}</tbody>
+      </table>
+      </div>
+      <div class="ms-auto totales-doc">
+        <div class="d-flex justify-content-between"><span>Subtotal</span><span>{{ v.subtotal | pesos }}</span></div>
+        {% if v.descuento > 0 %}<div class="d-flex justify-content-between"><span>Descuento</span><span>−{{ v.descuento | pesos }}</span></div>{% endif %}
+        <div class="d-flex justify-content-between"><span>Monto neto</span><span>{{ v.monto_neto | pesos }}</span></div>
+        <div class="d-flex justify-content-between"><span>IVA (19%)</span><span>{{ v.monto_iva | pesos }}</span></div>
+        <div class="d-flex justify-content-between gap-3 fw-bold fs-5 border-top pt-1"><span>Total pagado</span><span>{{ v.monto_total | pesos }}</span></div>
+      </div>
+      {% set garantias = v.detalle | selectattr('meses_garantia_aplicados') | list %}
+      {% if garantias %}
+      <div class="mt-3">
+        <h2 class="h6 text-marca">Garantías</h2>
+        <ul class="small mb-0">
+          {% for d in garantias %}
+          <li>{{ d.codigo_sku }} {{ d.nombre }} ({{ d.marca }}): Garantía válida por {{ d.meses_garantia_aplicados }} mes{{ 'es' if d.meses_garantia_aplicados != 1 }} · Vigente hasta: <strong>{{ d.fecha_fin_garantia.strftime('%d/%m/%Y') }}</strong></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      {% if es_admin %}
+      <div class="small text-muted mt-3 no-print">Costo FIFO/FEFO: {{ v.costo_total | pesos }} · Margen: {{ (v.monto_total - v.costo_total) | pesos }}</div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-4 no-print">
+    <div class="card p-3 mb-3">
+      <h2 class="h6">Comprobantes de pago</h2>
+      <ul class="list-unstyled small">
+        {% for c in v.comprobantes %}
+          <li><a href="{{ url_for('ventas.ver_comprobante', comprobante_id=c.id) }}" target="_blank" rel="noopener">{{ c.nombre_original or 'comprobante' }}</a>
+            <span class="text-muted">· {{ c.fecha_carga | fecha }}</span></li>
+        {% else %}<li class="text-warning">Sin comprobante adjunto.</li>{% endfor %}
+      </ul>
+      {% if v.estado == 'CONFIRMADA' %}
+      <form method="post" action="{{ url_for('ventas.adjuntar', venta_id=v.id) }}" enctype="multipart/form-data" class="d-flex gap-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input class="form-control form-control-sm" type="file" name="comprobante" accept="image/*,application/pdf" required>
+        <button class="btn btn-sm btn-outline-primary">Adjuntar</button>
+      </form>
+      {% endif %}
+    </div>
+    {% if v.nota_credito %}
+    <div class="card p-3 border-danger">
+      <h2 class="h6 text-danger">Nota de crédito N° {{ v.nota_credito.numero }}</h2>
+      <p class="small mb-0">{{ v.nota_credito.fecha_hora | fecha }} · {{ v.nota_credito.monto | pesos }}<br>
+        Motivo: {{ v.nota_credito.motivo }}<br>Autorizada por {{ v.nota_credito.autorizado_por }}</p>
+    </div>
+    {% elif es_admin %}
+    <div class="card p-3">
+      <h2 class="h6">Anular con nota de crédito</h2>
+      <p class="small text-muted">Una venta confirmada no se puede editar ni borrar. La nota de crédito la anula, devuelve el stock a tienda y revierte el costo.</p>
+      <form method="post" action="{{ url_for('ventas.nota_credito', venta_id=v.id) }}" onsubmit="return confirm('¿Emitir nota de crédito y anular esta venta?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input class="form-control mb-2" name="motivo" minlength="5" maxlength="255" placeholder="Motivo de la anulación" required>
+        <button class="btn btn-outline-danger w-100">Emitir nota de crédito</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

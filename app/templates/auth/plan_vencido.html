@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block titulo %}Plan vencido{% endblock %}
+{% block body_clase %}fondo-auth{% endblock %}
+{% block contenido %}
+<div class="text-center mb-3"><img src="{{ url_for('static', filename='img/logo-contabox.png') }}" alt="ContaBox" class="logo-contabox logo-contabox-sm"></div>
+<div class="tarjeta-auth card card-vidrio p-4 text-center">
+  <h2 class="h4">El período de uso terminó</h2>
+  {% if usuario_actual.rol == 'ADMIN' %}
+    <p>Tu mes gratis terminó el {{ empresa_actual.prueba_hasta | fecha }}. Toda tu información está guardada.
+       Activa tu suscripción para seguir usando ContaBox.</p>
+  {% else %}
+    <p>El plan de {{ nombre_marca }} no está activo. Avísale al administrador.</p>
+  {% endif %}
+  <a class="btn btn-outline-secondary" href="{{ url_for('auth.logout') }}">Salir</a>
+</div>
+{% endblock %}

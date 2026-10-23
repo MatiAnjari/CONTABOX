@@ -1,0 +1,21 @@
+# /etc/systemd/system/contabox.service
+[Unit]
+Description=ContaBox (Gunicorn)
+After=network.target mysql.service
+Requires=mysql.service
+
+[Service]
+User=contabox
+Group=www-data
+WorkingDirectory=/opt/contabox
+EnvironmentFile=/opt/contabox/.env
+ExecStart=/opt/contabox/venv/bin/gunicorn -c deploy/gunicorn.conf.py run:app
+Restart=always
+RestartSec=3
+# Endurecimiento
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

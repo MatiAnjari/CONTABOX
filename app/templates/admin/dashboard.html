@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% from "macros.html" import filtro_fechas %}
+{% block titulo %}Dashboard{% endblock %}
+{% macro kpi_meta(valor, meta, mayor_mejor, titulo, formula, sin_datos) %}
+  {% if valor is none %}
+    {% set clase, texto = 'secondary', 'Sin datos' %}
+  {% elif (mayor_mejor and valor >= meta) or (not mayor_mejor and valor <= meta) %}
+    {% set clase, texto = 'success', 'Cumple meta' %}
+  {% else %}
+    {% set clase, texto = 'danger', 'Fuera de meta' %}
+  {% endif %}
+  <div class="card p-3 h-100 kpi-card borde-{{ clase }}">
+    <div class="d-flex justify-content-between align-items-start">
+      <span class="text-muted small">{{ titulo }}</span>
+      <span class="badge text-bg-{{ clase }}">{{ texto }}</span>
+    </div>
+    <span class="kpi">{{ (valor | numero(1)) ~ ' %' if valor is not none else '—' }}</span>
+    <span class="small text-muted">Meta {{ '≥' if mayor_mejor else '≤' }} {{ meta | numero(1) }} % · {{ formula }}</span>
+    {% if valor is none %}<span class="small text-muted">{{ sin_datos }}</span>{% endif %}
+  </div>
+{% endmacro %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-0">{{ nombre_marca }}</h1>
+    <span class="text-muted small">{{ empresa_actual.razon_social }} · RUT {{ empresa_actual.rut | rut }}</span>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if not empresa_actual.suscripcion_hasta %}<span class="badge text-bg-info fs-6">Mes gratis: quedan {{ dias_prueba }} días</span>{% endif %}
+    {% if conteo.get('PENDIENTE') %}
+      <a class="badge text-bg-warning fs-6 text-decoration-none" href="{{ url_for('admin.trabajadores', estado='PENDIENTE') }}">
+        {{ conteo.PENDIENTE }} solicitud{{ 'es' if conteo.PENDIENTE > 1 }} pendiente{{ 's' if conteo.PENDIENTE > 1 }}</a>
+    {% endif %}
+  </div>
+</div>
+
+{{ filtro_fechas(desde, hasta) }}
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-xl-3"><div class="card p-3 h-100"><span class="text-muted small">Ventas totales</span>
+    <span class="kpi">{{ k.ventas.monto | pesos }}</span><span class="small text-muted">{{ k.ventas.cantidad }} boletas · {{ k.unidades_vendidas }} u.</span></div></div>
+  <div class="col-6 col-xl-3"><div class="card p-3 h-100"><span class="text-muted small">Ganancia bruta</span>
+    <span class="kpi">{{ k.ganancia_bruta | pesos }}</span><span class="small text-muted">Costo vendido {{ k.ventas.costo | pesos }}</span></div></div>
+  <div class="col-6 col-xl-3"><div class="card p-3 h-100"><span class="text-muted small">Pérdidas (mermas)</span>
+    <span class="kpi text-danger">−{{ k.perdidas.costo | pesos }}</span><span class="small text-muted">{{ k.perdidas.unidades }} u. dadas de baja</span></div></div>
+  <div class="col-6 col-xl-3"><div class="card p-3 h-100"><span class="text-muted small">Ganancia neta</span>
+    <span class="kpi {{ 'text-danger' if k.ganancia_neta < 0 }}">{{ k.ganancia_neta | pesos }}</span><span class="small text-muted">Bruta − pérdidas</span></div></div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">{{ kpi_meta(k.ppi, k.metas.ppi, true, '% Precisión de inventario (PPI)', 'físico / sistema',
+       'Registra conteos físicos en Bodega → Conteos.') }}</div>
+  <div class="col-md-4">{{ kpi_meta(k.pmr, k.metas.pmr, false, '% Merma y pérdidas (PMR)', 'perdidas / ingresadas',
+       'Sin lotes ingresados en el período.') }}</div>
+  <div class="col-md-4">{{ kpi_meta(k.mbo, k.metas.mbo, true, '% Margen bruto operacional (MBO)', '(ventas − costo) / ventas',
+       'Sin ventas en el período.') }}</div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="card p-3 h-100"><span class="text-muted small">Stock en bodega</span><span class="kpi">{{ k.stock.bodega | numero }}</span></div></div>
+  <div class="col-6 col-lg-3"><div class="card p-3 h-100"><span class="text-muted small">Stock en tienda</span><span class="kpi">{{ k.stock.tienda | numero }}</span></div></div>
+  <div class="col-6 col-lg-3"><div class="card p-3 h-100"><span class="text-muted small">Inventario valorizado</span><span class="kpi">{{ k.valor_inventario | pesos }}</span></div></div>
+  <div class="col-6 col-lg-3"><div class="card p-3 h-100"><span class="text-muted small">Inversión en lotes (período)</span><span class="kpi">{{ k.ingresos.inversion | pesos }}</span>
+    <span class="small text-muted">{{ k.ingresos.unidades }} u. ingresadas</span></div></div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-8">
+    <div class="card p-3 h-100">
+      <h2 class="h6">Ventas por día</h2>
+      {% if k.por_dia %}<div class="grafico"><canvas id="graficoDias"></canvas></div>
+      {% else %}<p class="text-muted mb-0">Sin ventas en el período.</p>{% endif %}
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card p-3 mb-3">
+      <h2 class="h6">Ventas por categoría</h2>
+      <table class="table table-sm mb-0"><tbody>
+      {% for c in k.por_categoria %}
+        <tr><td>{{ c.categoria }}</td><td class="text-end">{{ c.unidades }} u.</td><td class="text-end">{{ c.monto | pesos }}</td></tr>
+      {% else %}<tr><td class="text-muted">Sin ventas.</td></tr>{% endfor %}
+      </tbody></table>
+    </div>
+    <div class="card p-3">
+      <h2 class="h6">Ventas por vendedor</h2>
+      <table class="table table-sm mb-0"><tbody>
+      {% for v in k.por_vendedor %}
+        <tr><td>{{ v.vendedor }}</td><td class="text-end">{{ v.ventas }}</td><td class="text-end">{{ v.monto | pesos }}</td></tr>
+      {% else %}<tr><td class="text-muted">Sin ventas.</td></tr>{% endfor %}
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6 col-xl-4">
+    <div class="card p-3 h-100"><h2 class="h6">Más vendidos</h2>
+      <table class="table table-sm mb-0"><tbody>
+      {% for p in k.mas_vendidos if p.unidades > 0 %}
+        <tr><td><span class="text-muted small">{{ p.codigo_sku }}</span> {{ p.nombre }}</td><td class="text-end">{{ p.unidades }} u.</td><td class="text-end">{{ p.monto | pesos }}</td></tr>
+      {% else %}<tr><td class="text-muted">Sin ventas.</td></tr>{% endfor %}
+      </tbody></table></div>
+  </div>
+  <div class="col-md-6 col-xl-4">
+    <div class="card p-3 h-100"><h2 class="h6">Menos vendidos</h2>
+      <table class="table table-sm mb-0"><tbody>
+      {% for p in k.menos_vendidos %}
+        <tr><td><span class="text-muted small">{{ p.codigo_sku }}</span> {{ p.nombre }}</td><td class="text-end">{{ p.unidades }} u.</td></tr>
+      {% else %}<tr><td class="text-muted">Sin productos.</td></tr>{% endfor %}
+      </tbody></table></div>
+  </div>
+  <div class="col-md-12 col-xl-4">
+    <div class="card p-3 h-100"><h2 class="h6">Pérdidas por motivo</h2>
+      <table class="table table-sm mb-0"><tbody>
+      {% for m in k.perdidas_por_motivo %}
+        <tr><td>{{ motivos[m.motivo] }}</td><td class="text-end">{{ m.unidades }} u.</td><td class="text-end text-danger">{{ m.costo | pesos }}</td></tr>
+      {% else %}<tr><td class="text-muted">Sin pérdidas registradas.</td></tr>{% endfor %}
+      </tbody></table>
+      <a class="small mt-2" href="{{ url_for('admin.perdidas', desde=desde, hasta=hasta) }}">Ver auditoría de pérdidas</a></div>
+  </div>
+</div>
+
+{% if por_vencer %}
+<div class="card p-3 mb-3 border-start border-danger border-4">
+  <h2 class="h6 text-danger">Lotes por vencer (próximos {{ dias_alerta }} días)</h2>
+  <table class="table table-sm mb-0">
+    <thead><tr><th>Producto</th><th>Lote</th><th class="text-end">Unidades</th><th>Vence</th></tr></thead>
+    <tbody>{% for l in por_vencer %}
+      <tr><td>{{ l.nombre }} <span class="text-muted small">{{ l.marca }}</span></td><td>{{ l.numero_lote }}</td><td class="text-end">{{ l.cantidad_disponible }}</td>
+        <td class="{{ 'text-danger fw-semibold' if l.dias <= 0 }}">{{ l.fecha_vencimiento | dia }} {% if l.dias < 0 %}(vencido){% elif l.dias == 0 %}(hoy){% else %}({{ l.dias }} d){% endif %}</td></tr>
+    {% endfor %}</tbody>
+  </table>
+</div>
+{% endif %}
+<div class="card p-3">
+  <div class="d-flex justify-content-between"><h2 class="h6">Alertas de stock crítico</h2>
+    <a class="small" href="{{ url_for('bodega.inventario', criticos=1) }}">Ver todas</a></div>
+  <table class="table table-sm mb-0">
+    <thead><tr><th>SKU</th><th>Producto</th><th class="text-end">Bodega</th><th class="text-end">Tienda</th><th class="text-end">Crítico</th></tr></thead>
+    <tbody>
+    {% for c in criticos %}
+      <tr><td>{{ c.codigo_sku }}</td><td><a href="{{ url_for('bodega.producto', producto_id=c.id) }}">{{ c.nombre }}</a></td>
+        <td class="text-end">{{ c.stock_bodega }}</td><td class="text-end">{{ c.stock_tienda }}</td><td class="text-end text-danger">{{ c.stock_critico }}</td></tr>
+    {% else %}<tr><td colspan="5" class="text-muted">Ningún producto en nivel crítico.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+{% block scripts %}
+{% if k.por_dia %}
+<script src="{{ url_for('static', filename='vendor/chart.umd.js') }}"></script>
+<script>
+  Chart.defaults.color = '#c8c2dc';
+  Chart.defaults.borderColor = 'rgba(255, 255, 255, .08)';
+  const dias = {{ k.por_dia | tojson }};
+  new Chart(document.getElementById('graficoDias'), {
+    type: 'bar',
+    data: {
+      labels: dias.map(d => new Date(d.dia).toLocaleDateString('es-CL', {day: '2-digit', month: '2-digit', timeZone: 'UTC'})),
+      datasets: [
+        {label: 'Ventas', data: dias.map(d => Number(d.monto)), backgroundColor: '#7c4dff', borderRadius: 4},
+        {label: 'Costo', data: dias.map(d => Number(d.costo)), backgroundColor: 'rgba(201, 184, 255, .45)', borderRadius: 4}
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {tooltip: {callbacks: {label: c => c.dataset.label + ': ' + ContaBox.pesos(c.parsed.y)}}},
+      scales: {y: {ticks: {callback: v => ContaBox.pesos(v)}}}
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}

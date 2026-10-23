@@ -1,0 +1,181 @@
+/* =====================================================================
+   ContaBox · tema oscuro con los colores del logo (morado sobre negro)
+   ===================================================================== */
+:root, [data-bs-theme="dark"] {
+  --marca: #7c4dff;            /* morado del logo */
+  --marca-oscuro: #5b2ee0;
+  --marca-claro: #b69cff;      /* para textos y cifras sobre fondo oscuro */
+  --violeta: var(--marca);
+  --violeta-oscuro: var(--marca-oscuro);
+  --fondo-app: #0c0a16;
+  --superficie: rgba(22, 19, 40, .92);
+  --borde-suave: rgba(124, 77, 255, .18);
+}
+[data-bs-theme="dark"] {
+  --bs-body-bg: var(--fondo-app);
+  --bs-body-color: #e9e6f3;
+  --bs-secondary-color: rgba(233, 230, 243, .68);
+  --bs-tertiary-bg: #1a1630;
+  --bs-border-color: rgba(255, 255, 255, .12);
+  --bs-primary: #7c4dff;
+  --bs-primary-rgb: 124, 77, 255;
+  --bs-link-color: #b69cff;
+  --bs-link-color-rgb: 182, 156, 255;
+  --bs-link-hover-color: #d8cbff;
+  --bs-link-hover-color-rgb: 216, 203, 255;
+  --bs-focus-ring-color: rgba(124, 77, 255, .35);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(124, 77, 255, .18), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(91, 46, 224, .16), transparent 60%),
+    var(--fondo-app) fixed;
+}
+
+/* ---------- Barra superior ---------- */
+.barra-app {
+  background: rgba(10, 8, 20, .88);
+  border-bottom: 1px solid rgba(124, 77, 255, .35);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.barra-app .nav-link { border-radius: .5rem; padding-left: .6rem !important; padding-right: .6rem !important; }
+.barra-app .nav-link.active { background: rgba(124, 77, 255, .25); color: #fff; }
+.barra-app .nav-link:hover { color: #fff; }
+.logo-cubo { height: 34px; width: auto; }
+.palabra-marca { font-weight: 800; letter-spacing: -.02em; color: #fff; }
+.palabra-marca span { color: var(--marca); }
+.separador-marca { width: 1px; height: 22px; background: rgba(255, 255, 255, .25); }
+.nombre-empresa { font-size: .95rem; color: rgba(255, 255, 255, .75); }
+.logo-nav { height: 30px; width: auto; border-radius: 4px; background: #fff; padding: 2px; }
+
+/* ---------- Componentes ---------- */
+.bg-marca { background: var(--marca); }
+.text-marca { color: var(--marca-claro); }
+.btn-marca, .btn-violeta {
+  background: linear-gradient(135deg, var(--marca), var(--marca-oscuro));
+  color: #fff; border: 0;
+}
+.btn-marca:hover, .btn-marca:focus, .btn-violeta:hover, .btn-violeta:focus { background: var(--marca-oscuro); color: #fff; }
+.btn-primary {
+  --bs-btn-bg: var(--marca); --bs-btn-border-color: var(--marca);
+  --bs-btn-hover-bg: var(--marca-oscuro); --bs-btn-hover-border-color: var(--marca-oscuro);
+  --bs-btn-active-bg: var(--marca-oscuro); --bs-btn-active-border-color: var(--marca-oscuro);
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--marca-claro); --bs-btn-border-color: rgba(124, 77, 255, .6);
+  --bs-btn-hover-bg: var(--marca); --bs-btn-hover-border-color: var(--marca); --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--marca); --bs-btn-active-border-color: var(--marca); --bs-btn-active-color: #fff;
+}
+.nav-pills { --bs-nav-pills-link-active-bg: var(--marca); }
+.form-check-input:checked { background-color: var(--marca); border-color: var(--marca); }
+.form-control:focus, .form-select:focus { border-color: var(--marca); box-shadow: 0 0 0 .25rem rgba(124, 77, 255, .25); }
+
+.card {
+  background: var(--superficie);
+  border: 1px solid var(--borde-suave);
+  box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .35);
+}
+.table { --bs-table-bg: transparent; --bs-table-hover-bg: rgba(124, 77, 255, .08); }
+.table > thead th { color: var(--marca-claro); font-weight: 600; border-bottom-color: rgba(124, 77, 255, .35); }
+.table td, .table th { vertical-align: middle; }
+
+.kpi { display: block; font-size: 1.75rem; font-weight: 700; color: var(--marca-claro); line-height: 1.2; }
+.kpi-card.borde-success { border-left: 4px solid var(--bs-success); }
+.kpi-card.borde-danger { border-left: 4px solid var(--bs-danger); }
+.kpi-card.borde-secondary { border-left: 4px solid var(--bs-secondary); }
+.grafico { position: relative; height: 260px; }
+.lista-scroll { max-height: 320px; overflow-y: auto; }
+.sub-nav .nav-link { color: #e6defc; background: rgba(124, 77, 255, .08); }
+.sub-nav .nav-link.active { background: var(--marca); color: #fff; }
+.total-pos { font-size: 2.5rem; font-weight: 800; color: var(--marca-claro); }
+.medios-pago { grid-template-columns: 1fr 1fr; }
+main > h1, main > div > h1 { font-weight: 700; letter-spacing: -.01em; }
+
+/* Comprobantes */
+.logo-doc { max-height: 70px; max-width: 120px; object-fit: contain; }
+.caja-folio { border: 2px solid #ff5c6c; color: #ff7a87; padding: .5rem 1rem; min-width: 200px; border-radius: 4px; }
+.totales-doc { max-width: 320px; }
+.badge-garantia { background: rgba(124, 77, 255, .2); color: #d8cbff; }
+
+/* Objetivos táctiles amplios para tablets */
+@media (pointer: coarse) { .btn { min-height: 44px; } .form-control, .form-select { min-height: 44px; } }
+
+/* ---------- Páginas de acceso ---------- */
+.logo-login { max-height: 90px; max-width: 220px; object-fit: contain; }
+.logo-contabox { width: min(340px, 80%); height: auto; }
+.logo-contabox-sm { width: min(240px, 60%); }
+.tarjeta-auth { max-width: 540px; margin: 1.5rem auto; }
+.marca-login { font-weight: 700; color: #fff; }
+.card-vidrio {
+  background: rgba(16, 14, 26, .78);
+  border: 1px solid rgba(124, 77, 255, .35);
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, .6);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #f1effa;
+}
+a.card-vidrio:hover { border-color: var(--marca); }
+a.card-vidrio strong { color: #fff; }
+.fondo-login .form-control, .fondo-auth .form-control, .fondo-auth .form-select { background-color: rgba(0, 0, 0, .45); border-color: rgba(255, 255, 255, .18); }
+.fondo-auth { background: #020204; }
+
+/* Login: imagen de fondo con el logo */
+.fondo-login {
+  min-height: 100vh;
+  background: #020204 url("../img/fondo-login.jpg") no-repeat;
+  background-size: 100vw auto;
+  background-position: center top;
+}
+.main-login { min-height: 100vh; }
+.tarjeta-login { max-width: 440px; margin: calc(84vw - 1.5rem) auto 1.5rem; }
+@media (min-width: 576px) {
+  .fondo-login { background-size: auto min(100vh, 100vw); }
+  .tarjeta-login { margin-top: min(82vh, 82vw); }
+}
+/* Pantalla ancha: logo a la izquierda y formulario a la derecha. */
+@media (min-width: 992px) {
+  .fondo-login { background-size: auto min(100vh, 62vw); background-position: left 3vw center; }
+  .main-login { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
+  .main-login > .alert { width: 440px; margin-right: 6vw; }
+  .tarjeta-login { margin: 0 6vw 0 0; width: 100%; }
+}
+
+/* ---------- Fondos por perfil: ventas (vendedor) y bodega (bodeguero) ---------- */
+.fondo-panel {
+  background: linear-gradient(rgba(8, 6, 18, .6), rgba(8, 6, 18, .78)), var(--fondo) center / cover no-repeat fixed;
+  background-color: var(--fondo-app);
+}
+.fondo-ventas { --fondo: url("../img/fondo-ventas.jpg"); }
+.fondo-bodega { --fondo: url("../img/fondo-bodega.jpg"); }
+.fondo-panel .card {
+  background: rgba(16, 14, 26, .84);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.fondo-panel main > h1, .fondo-panel main > div > h1, .fondo-panel main > form .form-label { color: #fff; text-shadow: 0 1px 4px rgba(0, 0, 0, .6); }
+.fondo-panel .sub-nav .nav-link:not(.active) { background: rgba(16, 14, 26, .65); }
+/* En tablets y celulares "fixed" se ve mal: el fondo se desplaza con la página. */
+@media (max-width: 991.98px) { .fondo-panel, body { background-attachment: scroll; } }
+
+/* ---------- Impresión: siempre en blanco ---------- */
+@media print {
+  [data-bs-theme="dark"] {
+    --bs-body-bg: #fff; --bs-body-color: #000; --bs-body-color-rgb: 0, 0, 0;
+    --bs-emphasis-color: #000; --bs-emphasis-color-rgb: 0, 0, 0; --bs-heading-color: #000;
+    --bs-secondary-color: #444; --bs-border-color: #bbb;
+  }
+  .table { --bs-table-color: #000; }
+  .navbar, .no-print, .alert { display: none !important; }
+  body, .fondo-panel { background: #fff !important; color: #000; }
+  .card { background: #fff !important; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .text-marca, .kpi, .total-pos, .table > thead th { color: #000 !important; }
+  .boleta { max-width: 80mm; margin: 0 auto; }
+}
+
+/* Con el menú completo del administrador, el nombre de la empresa y del usuario
+   solo caben en pantallas muy anchas o con el menú colapsado. */
+@media (min-width: 1200px) and (max-width: 1679.98px) { .solo-ancho { display: none !important; } }
+.medios-pago .btn-check:checked + .btn { background: var(--marca); border-color: var(--marca); color: #fff; }

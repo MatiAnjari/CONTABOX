@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from "macros.html" import campo_sku, campos_catalogo %}
+{% block titulo %}Recepción de lotes{% endblock %}
+{% block contenido %}
+<h1 class="h3">Bodega</h1>
+{% include "bodega/_nav.html" %}
+<div class="row g-3">
+  <div class="col-xl-5">
+    <div class="card p-4">
+      <h2 class="h5">Recepción de lote</h2>
+      <form method="post" class="js-form-sku js-form-lote" data-modo="lote">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-3">{{ campo_sku(sku) }}</div>
+
+        <div class="js-solo-nuevo">
+          <div class="mb-3"><label class="form-label">Nombre del producto</label>
+            <input class="form-control" name="nombre" maxlength="150" placeholder="Ej.: Leche entera 1 L"></div>
+          {{ campos_catalogo(categorias, marcas) }}
+        </div>
+
+        <div class="mb-3"><label class="form-label">N° o código de lote</label>
+          <input class="form-control form-control-lg" name="numero_lote" maxlength="50" required placeholder="Ej.: L-2026-0153"></div>
+        <div class="row">
+          <div class="col-6 mb-3"><label class="form-label">Cajas / bultos</label>
+            <input class="form-control form-control-lg" type="number" name="cantidad_bultos" min="1" required inputmode="numeric"></div>
+          <div class="col-6 mb-3"><label class="form-label">Unidades por caja</label>
+            <input class="form-control form-control-lg" type="number" name="unidades_por_bulto" min="1" value="1" required inputmode="numeric"></div>
+        </div>
+        <div class="alert alert-info py-2 js-total-unidades">Stock total del lote: <strong>0 unidades</strong></div>
+
+        <label class="form-label">Costo de adquisición</label>
+        <div class="btn-group w-100 mb-2" role="group">
+          <input type="radio" class="btn-check" name="modo_costo" id="mc1" value="UNITARIO" checked><label class="btn btn-outline-secondary" for="mc1">Por unidad</label>
+          <input type="radio" class="btn-check" name="modo_costo" id="mc2" value="BULTO"><label class="btn btn-outline-secondary" for="mc2">Por caja</label>
+          <input type="radio" class="btn-check" name="modo_costo" id="mc3" value="TOTAL"><label class="btn btn-outline-secondary" for="mc3">Total del lote</label>
+        </div>
+        <input class="form-control mb-1" name="costo" inputmode="decimal" required placeholder="$">
+        <div class="form-text mb-3 js-costo-calc"></div>
+
+        <div class="row">
+          <div class="col-6 mb-3"><label class="form-label">Precio de venta por unidad</label>
+            <input class="form-control" name="precio_venta" inputmode="decimal" required placeholder="$"></div>
+          <div class="col-6 mb-3"><label class="form-label">Stock crítico (u.)</label>
+            <input class="form-control" type="number" name="stock_critico" min="0" placeholder="5"></div>
+        </div>
+        <div class="mb-3"><label class="form-label">Fecha de vencimiento <span class="small text-muted js-venc-ayuda">(opcional)</span></label>
+          <input class="form-control" type="date" name="fecha_vencimiento"></div>
+        <button class="btn btn-marca btn-lg w-100">Registrar ingreso a bodega</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-xl-7">
+    <div class="card p-3">
+      <h2 class="h6">Últimos lotes recibidos</h2>
+      <div class="table-responsive"><table class="table table-sm mb-0">
+        <thead><tr><th>Fecha</th><th>SKU</th><th>Producto</th><th>Lote</th><th class="text-end">Cajas × u.</th><th class="text-end">Total u.</th>
+          <th class="text-end">Disp.</th><th class="text-end">Costo u.</th><th class="text-end">Inversión</th><th>Vence</th><th>Responsable</th></tr></thead>
+        <tbody>
+        {% for l in recientes %}
+          <tr><td class="text-nowrap">{{ l.fecha_ingreso | fecha }}</td><td>{{ l.codigo_sku }}</td><td>{{ l.nombre }}</td><td>{{ l.numero_lote }}</td>
+            <td class="text-end text-nowrap">{{ l.cantidad_bultos }} × {{ l.unidades_por_bulto }}</td><td class="text-end">{{ l.cantidad_ingresada }}</td>
+            <td class="text-end">{{ l.cantidad_disponible }}</td><td class="text-end">{{ l.costo_unitario | pesos }}</td>
+            <td class="text-end">{{ l.inversion_total | pesos }}</td><td class="text-nowrap">{{ l.fecha_vencimiento | dia }}</td><td>{{ l.responsable }}</td></tr>
+        {% else %}<tr><td colspan="11" class="text-muted">Aún no hay lotes.</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

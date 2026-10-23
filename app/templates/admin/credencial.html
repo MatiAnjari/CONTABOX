@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titulo %}Credencial temporal{% endblock %}
+{% block contenido %}
+<div class="card p-4 mx-auto" style="max-width:560px">
+  <h1 class="h5">Credencial temporal de {{ t.nombre }} {{ t.apellido }}</h1>
+  <p class="small text-muted">Entrégala al trabajador. Por seguridad <strong>no se volverá a mostrar</strong>; si se pierde, genera otra desde su ficha.</p>
+  <dl class="row mb-3">
+    <dt class="col-5">Usuario (RUT)</dt><dd class="col-7">{{ t.rut | rut }}</dd>
+    {% if t.email %}<dt class="col-5">o correo</dt><dd class="col-7">{{ t.email }}</dd>{% endif %}
+    <dt class="col-5">Contraseña temporal</dt><dd class="col-7"><code class="fs-5">{{ temporal }}</code></dd>
+    <dt class="col-5">Rol</dt><dd class="col-7">{{ t.nombre_rol }}</dd>
+  </dl>
+  <a class="btn btn-marca" href="{{ url_for('admin.ficha', usuario_id=t.id) }}">Ir a la ficha</a>
+</div>
+{% endblock %}

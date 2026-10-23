@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}Nuevo trabajador{% endblock %}
+{% block contenido %}
+<a href="{{ url_for('admin.trabajadores') }}" class="small">&larr; Trabajadores</a>
+<div class="card p-4 mt-2" style="max-width:640px">
+  <h1 class="h5">Nuevo trabajador con credencial temporal</h1>
+  <p class="small text-muted">La cuenta queda activa de inmediato. El sistema genera una contraseña temporal que el trabajador
+    deberá cambiar en su primer ingreso.</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="row">
+      <div class="col-sm-6 mb-3"><label class="form-label">Nombre</label>
+        <input class="form-control" name="nombre" value="{{ form.nombre or '' }}" maxlength="80" required></div>
+      <div class="col-sm-6 mb-3"><label class="form-label">Apellido</label>
+        <input class="form-control" name="apellido" value="{{ form.apellido or '' }}" maxlength="80" required></div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6 mb-3"><label class="form-label">RUT</label>
+        <input class="form-control" name="rut" value="{{ form.rut or '' }}" placeholder="12.345.678-5" required></div>
+      <div class="col-sm-6 mb-3"><label class="form-label">Correo <span class="text-muted small">(opcional)</span></label>
+        <input class="form-control" type="email" name="email" value="{{ form.email or '' }}"></div>
+    </div>
+    <div class="mb-3"><label class="form-label">Rol</label>
+      <select class="form-select" name="rol" required>
+        <option value="">Selecciona…</option>
+        <option value="VENDEDOR" {{ 'selected' if form.rol == 'VENDEDOR' }}>Vendedor</option>
+        <option value="BODEGUERO" {{ 'selected' if form.rol == 'BODEGUERO' }}>Bodeguero</option>
+      </select></div>
+    <button class="btn btn-marca">Crear y generar credencial</button>
+  </form>
+</div>
+{% endblock %}

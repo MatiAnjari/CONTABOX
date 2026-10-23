@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "macros.html" import filtro_fechas, badge_estado %}
+{% block titulo %}Ventas{% endblock %}
+{% block contenido %}
+<h1 class="h3">{{ 'Registro de ventas' if es_admin else 'Mis ventas' }}</h1>
+{% set extra %}
+  {% if es_admin %}
+  <div class="col-12 col-md-auto"><label class="form-label small mb-0">Vendedor</label>
+    <select class="form-select" name="vendedor"><option value="">Todos</option>
+      {% for v in vendedores %}<option value="{{ v.id }}" {{ 'selected' if vendedor == v.id }}>{{ v.nombre }}</option>{% endfor %}
+    </select></div>
+  {% endif %}
+  <div class="col-12 col-md-auto"><label class="form-label small mb-0">Estado</label>
+    <select class="form-select" name="estado"><option value="">Todas</option>
+      <option value="CONFIRMADA" {{ 'selected' if estado == 'CONFIRMADA' }}>Confirmadas</option>
+      <option value="ANULADA" {{ 'selected' if estado == 'ANULADA' }}>Anuladas</option></select></div>
+{% endset %}
+{{ filtro_fechas(desde, hasta, extra) }}
+<div class="row g-3 mb-3">
+  <div class="col-4"><div class="card p-3"><span class="small text-muted">Ventas confirmadas</span><span class="kpi">{{ resumen.cantidad }}</span></div></div>
+  <div class="col-4"><div class="card p-3"><span class="small text-muted">Unidades</span><span class="kpi">{{ resumen.unidades }}</span></div></div>
+  <div class="col-4"><div class="card p-3"><span class="small text-muted">Monto</span><span class="kpi">{{ resumen.monto | pesos }}</span></div></div>
+</div>
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0">
+  <thead><tr><th>Boleta</th><th>Fecha y hora</th>{% if es_admin %}<th>Vendedor</th>{% endif %}<th class="text-end">Unidades</th>
+    <th>Pago</th><th class="text-end">Total</th><th>Comprobante</th><th>Estado</th></tr></thead>
+  <tbody>
+  {% for v in ventas %}
+    <tr><td><a href="{{ url_for('ventas.boleta', venta_id=v.id) }}">{{ tipos[v.tipo_documento] }} N° {{ v.folio }}</a></td><td class="text-nowrap">{{ v.fecha_hora | fecha }}</td>
+      {% if es_admin %}<td>{{ v.vendedor }}</td>{% endif %}<td class="text-end">{{ v.unidades }}</td><td>{{ medios[v.medio_pago] }}</td>
+      <td class="text-end">{{ v.monto_total | pesos }}</td>
+      <td>{% if v.comprobantes %}<span class="badge text-bg-success">Adjunto</span>{% else %}<span class="badge text-bg-warning">Pendiente</span>{% endif %}</td>
+      <td>{{ badge_estado(v.estado) }}</td></tr>
+  {% else %}<tr><td colspan="8" class="text-center text-muted py-4">Sin ventas en el período.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div>
+{% endblock %}

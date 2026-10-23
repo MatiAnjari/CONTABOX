@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block titulo %}Registro de empleador{% endblock %}
+{% block body_clase %}fondo-auth{% endblock %}
+{% block contenido %}
+<div class="tarjeta-auth">
+  {% include "auth/_marca.html" %}
+  <div class="card card-vidrio p-4">
+    <h2 class="h5">Registro de empleador</h2>
+    <p class="small text-muted">Al registrarte tienes <strong>un mes gratis</strong> con todas las funciones.</p>
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label class="form-label">Nombre de la tienda</label>
+        <input class="form-control" name="nombre_fantasia" value="{{ form.nombre_fantasia or '' }}" maxlength="120" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Razón social <span class="text-muted small">(opcional)</span></label>
+        <input class="form-control" name="razon_social" value="{{ form.razon_social or '' }}" maxlength="150">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">RUT empresa o personal</label>
+        <input class="form-control" name="rut" value="{{ form.rut or '' }}" placeholder="76.123.456-0" required>
+      </div>
+      <div class="row">
+        <div class="col-sm-6 mb-3"><label class="form-label">Nombre</label>
+          <input class="form-control" name="nombre" value="{{ form.nombre or '' }}" maxlength="80" required></div>
+        <div class="col-sm-6 mb-3"><label class="form-label">Apellido</label>
+          <input class="form-control" name="apellido" value="{{ form.apellido or '' }}" maxlength="80" required></div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Correo laboral</label>
+        <input class="form-control" type="email" name="email" value="{{ form.email or '' }}" required autocomplete="email">
+      </div>
+      <div class="row">
+        <div class="col-sm-6 mb-3"><label class="form-label">Contraseña</label>
+          <input class="form-control" type="password" name="password" minlength="8" required autocomplete="new-password"></div>
+        <div class="col-sm-6 mb-3"><label class="form-label">Repite la contraseña</label>
+          <input class="form-control" type="password" name="password2" minlength="8" required autocomplete="new-password"></div>
+      </div>
+      <p class="form-text">Mínimo 8 caracteres, con letras y números.</p>
+      <button class="btn btn-marca w-100">Crear cuenta y empezar mes gratis</button>
+    </form>
+  </div>
+  <p class="text-center mt-3"><a href="{{ url_for('auth.login') }}">Ya tengo cuenta</a></p>
+</div>
+{% endblock %}

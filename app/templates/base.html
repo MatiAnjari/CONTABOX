@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block titulo %}{{ nombre_marca }}{% endblock %} · ContaBox</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+  <meta name="theme-color" content="#0c0a16">
+  <link href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="{% block body_clase %}{{ fondo_perfil }}{% endblock %}">
+{% if usuario_actual and not usuario_actual.debe_cambiar_password %}
+{% set rol = usuario_actual.rol %}
+{% set ep = request.endpoint or '' %}
+<nav class="navbar navbar-expand-xl navbar-dark barra-app sticky-top">
+  <div class="container-fluid px-3 px-lg-4">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('auth.index') }}">
+      <img src="{{ url_for('static', filename='img/logo-cubo.png') }}" alt="ContaBox" class="logo-cubo">
+      <span class="palabra-marca">Conta<span>Box</span></span>
+      <span class="separador-marca d-none d-sm-inline solo-ancho"></span>
+      {% if empresa_actual.logo_url %}
+        <img src="{{ url_for('static', filename=empresa_actual.logo_url) }}" alt="" class="logo-nav">
+      {% endif %}
+      <span class="nombre-empresa d-none d-sm-inline solo-ancho">{{ nombre_marca }}</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-label="Menú">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="menu">
+      <ul class="navbar-nav me-auto">
+        {% if rol == 'ADMIN' %}
+          <li class="nav-item"><a class="nav-link text-nowrap {{ 'active' if ep == 'admin.dashboard' }}" href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link text-nowrap {{ 'active' if ep in ('admin.trabajadores', 'admin.nuevo_trabajador', 'admin.ficha') }}" href="{{ url_for('admin.trabajadores') }}">Trabajadores</a></li>
+        {% endif %}
+        {% if rol in ('ADMIN', 'BODEGUERO') %}
+          <li class="nav-item"><a class="nav-link text-nowrap {{ 'active' if ep.startswith('bodega.') }}" href="{{ url_for('bodega.inventario') }}">Bodega</a></li>
+        {% endif %}
+        {% if rol in ('ADMIN', 'VENDEDOR') %}
+          <li class="nav-item"><a class="nav-link text-nowrap {{ 'active' if ep == 'ventas.pos' }}" href="{{ url_for('ventas.pos') }}">Punto de venta</a></li>
+          <li class="nav-item"><a class="nav-link text-nowrap {{ 'active' if ep in ('ventas.historial', 'ventas.boleta') }}" href="{{ url_for('ventas.historial') }}">{{ 'Ventas' if rol == 'ADMIN' else 'Mis ventas' }}</a></li>
+        {% endif %}
+        {% if rol == 'ADMIN' %}
+          <li class="nav-item"><a class="nav-link text-nowrap {{ 'active' if ep == 'admin.perdidas' }}" href="{{ url_for('admin.perdidas') }}">Pérdidas</a></li>
+          <li class="nav-item"><a class="nav-link text-nowrap {{ 'active' if ep == 'admin.auditoria' }}" href="{{ url_for('admin.auditoria') }}">Auditoría</a></li>
+          <li class="nav-item"><a class="nav-link text-nowrap {{ 'active' if ep == 'admin.configuracion' }}" href="{{ url_for('admin.configuracion') }}">Configuración</a></li>
+        {% endif %}
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <span class="navbar-text small text-white-50 text-nowrap solo-ancho">{{ usuario_actual.nombre }} {{ usuario_actual.apellido }} · {{ usuario_actual.nombre_rol }}</span>
+        <a class="btn btn-sm btn-outline-light" href="{{ url_for('auth.cambiar_password') }}">Contraseña</a>
+        <a class="btn btn-sm btn-light" href="{{ url_for('auth.logout') }}">Salir</a>
+      </div>
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+<main class="container-fluid px-3 px-lg-4 py-4 {% block main_clase %}{% endblock %}">
+  {% with mensajes = get_flashed_messages(with_categories=true) %}
+    {% for categoria, mensaje in mensajes %}
+      <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
+        {{ mensaje }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+  {% block contenido %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

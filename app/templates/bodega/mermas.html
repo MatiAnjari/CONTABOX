@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "macros.html" import campo_sku %}
+{% block titulo %}Mermas{% endblock %}
+{% block contenido %}
+<h1 class="h3">Bodega</h1>
+{% include "bodega/_nav.html" %}
+<div class="row g-3">
+  <div class="col-xl-5">
+    <div class="card p-4">
+      <h2 class="h5">Registrar merma o pérdida</h2>
+      <p class="small text-muted">Productos vencidos, dañados o robados. Se descuentan del stock y su costo se resta de la ganancia.</p>
+      <form method="post" class="js-form-sku">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-3">{{ campo_sku(sku) }}</div>
+        <div class="row">
+          <div class="col-6 mb-3"><label class="form-label">Unidades</label>
+            <input class="form-control form-control-lg" type="number" name="cantidad" min="1" required inputmode="numeric"></div>
+          <div class="col-6 mb-3"><label class="form-label">Ubicación</label>
+            <select class="form-select form-select-lg" name="origen"><option value="BODEGA">Bodega</option><option value="TIENDA">Tienda</option></select></div>
+        </div>
+        <div class="mb-3"><label class="form-label">Motivo (obligatorio)</label>
+          <select class="form-select form-select-lg" name="motivo" required>
+            <option value="">Selecciona el motivo…</option>
+            {% for k, v in motivos.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}
+          </select></div>
+        <div class="mb-3"><label class="form-label">Justificación <span class="small text-muted">(obligatoria si el motivo es "Otro")</span></label>
+          <input class="form-control" name="observacion" maxlength="255"></div>
+        <button class="btn btn-danger btn-lg w-100">Registrar merma</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-xl-7">
+    <div class="card p-3">
+      <h2 class="h6">Últimas mermas</h2>
+      <div class="table-responsive"><table class="table table-sm mb-0">
+        <thead><tr><th>Fecha</th><th>SKU</th><th>Producto</th><th class="text-end">Unid.</th><th>Motivo</th><th>Justificación</th><th class="text-end">Pérdida</th><th>Responsable</th></tr></thead>
+        <tbody>
+        {% for p in recientes %}
+          <tr><td class="text-nowrap">{{ p.fecha_hora | fecha }}</td><td>{{ p.codigo_sku }}</td><td>{{ p.nombre }}</td><td class="text-end">{{ p.cantidad }}</td>
+            <td>{{ motivos[p.motivo] }}</td><td class="small">{{ p.observacion or '—' }}</td><td class="text-end text-danger">{{ p.costo_total | pesos }}</td><td>{{ p.responsable }}</td></tr>
+        {% else %}<tr><td colspan="8" class="text-muted">Sin mermas registradas.</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

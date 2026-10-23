@@ -1,0 +1,8 @@
+.env
+venv/
+.venv/
+__pycache__/
+*.pyc
+archivos_privados/
+app/static/uploads/logos/*
+!app/static/uploads/logos/.gitkeep

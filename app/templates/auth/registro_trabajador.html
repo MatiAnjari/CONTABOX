@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block titulo %}Registro de empleado{% endblock %}
+{% block body_clase %}fondo-auth{% endblock %}
+{% block contenido %}
+<div class="tarjeta-auth">
+  {% include "auth/_marca.html" %}
+  <div class="card card-vidrio p-4">
+    <h2 class="h5">Registro de empleado</h2>
+    <p class="small text-muted">Tu solicitud le llegará al administrador. Podrás ingresar cuando la apruebe.</p>
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <fieldset class="mb-2">
+        <legend class="h6 text-muted">Empresa</legend>
+        <div class="mb-3"><label class="form-label">Nombre de la empresa</label>
+          <input class="form-control" name="nombre_empresa" value="{{ form.nombre_empresa or '' }}" required></div>
+        <div class="mb-3"><label class="form-label">RUT de la empresa o del empleador</label>
+          <input class="form-control" name="rut_empresa" value="{{ form.rut_empresa | rut if form.rut_empresa else '' }}" placeholder="76.123.456-0" required></div>
+      </fieldset>
+      <fieldset class="mb-2">
+        <legend class="h6 text-muted">Tus datos</legend>
+        <div class="row">
+          <div class="col-sm-6 mb-3"><label class="form-label">Nombre</label>
+            <input class="form-control" name="nombre" value="{{ form.nombre or '' }}" maxlength="80" required></div>
+          <div class="col-sm-6 mb-3"><label class="form-label">Apellido</label>
+            <input class="form-control" name="apellido" value="{{ form.apellido or '' }}" maxlength="80" required></div>
+        </div>
+        <div class="mb-3"><label class="form-label">RUT personal</label>
+          <input class="form-control" name="rut" value="{{ form.rut or '' }}" placeholder="12.345.678-5" required></div>
+        <div class="mb-3"><label class="form-label">Correo <span class="text-muted small">(opcional)</span></label>
+          <input class="form-control" type="email" name="email" value="{{ form.email or '' }}"></div>
+        <div class="mb-3">
+          <label class="form-label d-block">Labor</label>
+          {% for valor, texto in [('VENDEDOR', 'Vendedor'), ('BODEGUERO', 'Bodeguero')] %}
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="rol" id="rol-{{ valor }}" value="{{ valor }}"
+                   {{ 'checked' if form.rol == valor }} required>
+            <label class="form-check-label" for="rol-{{ valor }}">{{ texto }}</label>
+          </div>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <div class="row">
+        <div class="col-sm-6 mb-3"><label class="form-label">Contraseña</label>
+          <input class="form-control" type="password" name="password" minlength="8" required autocomplete="new-password"></div>
+        <div class="col-sm-6 mb-3"><label class="form-label">Repite la contraseña</label>
+          <input class="form-control" type="password" name="password2" minlength="8" required autocomplete="new-password"></div>
+      </div>
+      <p class="form-text">Mínimo 8 caracteres, con letras y números.</p>
+      <button class="btn btn-marca w-100">Enviar solicitud</button>
+    </form>
+  </div>
+  <p class="text-center mt-3"><a href="{{ url_for('auth.login', empresa=marca.rut if marca else None) }}">Volver al inicio de sesión</a></p>
+</div>
+{% endblock %}

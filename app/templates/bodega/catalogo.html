@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block titulo %}Categorías y marcas{% endblock %}
+{% block contenido %}
+<h1 class="h3">Bodega</h1>
+{% include "bodega/_nav.html" %}
+<div class="row g-3">
+  <div class="col-xl-8">
+    <div class="card p-3">
+      <h2 class="h6">Categorías</h2>
+      <p class="small text-muted">En las categorías de <strong>alimentos</strong> cada producto debe indicar si es perecible. Las categorías con
+        <strong>garantía</strong> (tecnología, electrónica, muebles…) calculan la fecha de término en cada venta.</p>
+      <div class="table-responsive"><table class="table table-sm align-middle mb-0">
+        <thead><tr><th>Nombre</th><th class="text-center">Alimento</th><th class="text-center">Garantía</th><th>Meses por defecto</th><th class="text-center">Desactivar</th><th class="text-end">Productos</th><th></th></tr></thead>
+        <tbody>
+        {% for c in categorias %}
+          {% set f = 'cat-' ~ c.id %}
+          <tr>
+            <td><input form="{{ f }}" class="form-control form-control-sm" name="nombre" value="{{ c.nombre }}" maxlength="100" required></td>
+            <td class="text-center"><input form="{{ f }}" class="form-check-input" type="checkbox" name="es_alimento" value="1" {{ 'checked' if c.es_alimento }}></td>
+            <td class="text-center"><input form="{{ f }}" class="form-check-input" type="checkbox" name="admite_garantia" value="1" {{ 'checked' if c.admite_garantia }}></td>
+            <td><input form="{{ f }}" class="form-control form-control-sm" type="number" min="0" max="120" name="garantia_meses_defecto" value="{{ c.garantia_meses_defecto }}" style="max-width:90px"></td>
+            <td class="text-center"><input form="{{ f }}" class="form-check-input" type="checkbox" name="inactiva" value="1" {{ 'checked' if not c.activo }} title="Marcar para desactivar"></td>
+            <td class="text-end">{{ c.productos }}</td>
+            <td class="text-end">
+              <form id="{{ f }}" method="post" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="categoria_id" value="{{ c.id }}">
+                <button class="btn btn-sm btn-outline-primary">Guardar</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+      <hr>
+      <h3 class="h6">Nueva categoría</h3>
+      <form method="post" class="row g-2 align-items-end">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="col-12 col-md-4"><label class="form-label small mb-0">Nombre</label><input class="form-control" name="nombre" maxlength="100" required></div>
+        <div class="col-auto form-check ms-2"><input class="form-check-input" type="checkbox" name="es_alimento" value="1" id="nAl"><label class="form-check-label" for="nAl">Alimento</label></div>
+        <div class="col-auto form-check ms-2"><input class="form-check-input" type="checkbox" name="admite_garantia" value="1" id="nGa"><label class="form-check-label" for="nGa">Garantía</label></div>
+        <div class="col-auto"><label class="form-label small mb-0">Meses</label><input class="form-control" type="number" min="0" max="120" name="garantia_meses_defecto" value="0" style="max-width:90px"></div>
+        <div class="col-auto"><button class="btn btn-marca">Agregar</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="card p-3">
+      <h2 class="h6">Marcas</h2>
+      <p class="small text-muted">Un mismo artículo de distinta marca se registra como otro producto, con su propio SKU y precio.</p>
+      <form method="post" class="d-flex gap-2 mb-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="tipo" value="marca">
+        <input class="form-control" name="nombre" maxlength="100" placeholder="Nueva marca" required>
+        <button class="btn btn-marca">Agregar</button>
+      </form>
+      <ul class="list-group list-group-flush lista-scroll">
+        {% for m in marcas %}
+          <li class="list-group-item d-flex justify-content-between px-0"><a href="{{ url_for('bodega.inventario', marca=m.id) }}">{{ m.nombre }}</a><span class="text-muted small">{{ m.productos }} productos</span></li>
+        {% else %}<li class="list-group-item px-0 text-muted">Aún no hay marcas. Se crean al recibir el primer lote.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

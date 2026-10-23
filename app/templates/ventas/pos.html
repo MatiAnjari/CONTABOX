@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block titulo %}Punto de venta{% endblock %}
+{% block contenido %}
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card p-3 p-md-4">
+      <h1 class="h4 mb-3">Punto de venta</h1>
+      <form id="formEscaneo" class="row g-2 align-items-end" autocomplete="off">
+        <div class="col-12 col-sm-7">
+          <label class="form-label" for="sku">Código SKU</label>
+          <input class="form-control form-control-lg" id="sku" placeholder="Escanea o escribe el código" maxlength="50" autofocus>
+        </div>
+        <div class="col-6 col-sm-2">
+          <label class="form-label" for="cantidad">Cant.</label>
+          <input class="form-control form-control-lg" id="cantidad" type="number" min="1" value="1" inputmode="numeric">
+        </div>
+        <div class="col-6 col-sm-3"><button class="btn btn-marca btn-lg w-100">Agregar</button></div>
+      </form>
+      <div id="mensajePos" class="mt-2 small" role="status" aria-live="polite"></div>
+      <div class="table-responsive mt-3">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>Producto</th><th class="text-end">Precio</th><th class="text-center">Cant.</th><th class="text-end">Subtotal</th><th></th></tr></thead>
+          <tbody id="carrito"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card p-3 p-md-4 sticky-lg-top" style="top: 80px">
+      <form id="formVenta">
+        <div class="btn-group w-100 mb-3" role="group" aria-label="Tipo de documento">
+          <input type="radio" class="btn-check" name="tipo_documento" id="td-boleta" value="BOLETA" checked>
+          <label class="btn btn-outline-primary" for="td-boleta">Boleta</label>
+          <input type="radio" class="btn-check" name="tipo_documento" id="td-factura" value="FACTURA">
+          <label class="btn btn-outline-primary" for="td-factura">Factura</label>
+        </div>
+        <div id="datosFactura" class="border rounded p-2 mb-3 d-none">
+          <div class="small fw-semibold mb-1">Datos del cliente</div>
+          <div class="row g-2">
+            <div class="col-6"><input class="form-control form-control-sm" name="cliente_rut" placeholder="RUT"></div>
+            <div class="col-6"><input class="form-control form-control-sm" name="cliente_giro" placeholder="Giro" maxlength="100"></div>
+            <div class="col-12"><input class="form-control form-control-sm" name="cliente_razon_social" placeholder="Razón social" maxlength="150"></div>
+            <div class="col-12"><input class="form-control form-control-sm" name="cliente_direccion" placeholder="Dirección" maxlength="200"></div>
+          </div>
+        </div>
+
+        <div class="totales-pos small">
+          <div class="d-flex justify-content-between"><span>Subtotal</span><span id="tSubtotal">$0</span></div>
+          <div class="d-flex justify-content-between align-items-center my-1">
+            <label for="descuento">Descuento ($)</label>
+            <input class="form-control form-control-sm text-end" style="max-width:130px" id="descuento" name="descuento" inputmode="numeric" value="0">
+          </div>
+          <div class="d-flex justify-content-between text-muted"><span>Neto</span><span id="tNeto">$0</span></div>
+          <div class="d-flex justify-content-between text-muted"><span>IVA (19%)</span><span id="tIva">$0</span></div>
+        </div>
+        <div class="d-flex justify-content-between align-items-baseline border-top mt-2 pt-2">
+          <span class="text-muted">Total</span><span class="total-pos" id="total">$0</span>
+        </div>
+        <div class="small text-muted mb-3" id="resumenUnidades">0 unidades</div>
+
+        <label class="form-label">Medio de pago</label>
+        <div class="d-grid gap-2 mb-3 medios-pago">
+          {% for k, v in medios.items() %}
+          <input type="radio" class="btn-check" name="medio_pago" id="mp-{{ k }}" value="{{ k }}" {{ 'checked' if loop.first }}>
+          <label class="btn btn-outline-secondary btn-lg" for="mp-{{ k }}">{{ v }}</label>
+          {% endfor %}
+        </div>
+        <label class="form-label" for="comprobante">Comprobante de pago {{ '(obligatorio)' if comprobante_obligatorio else '(opcional)' }}</label>
+        <input class="form-control mb-1" type="file" id="comprobante" name="comprobante" accept="image/*,application/pdf" capture="environment"
+               {{ 'required' if comprobante_obligatorio }}>
+        <div class="form-text mb-3">Foto o PDF del voucher o transferencia. Al confirmar se descarga el documento en PDF.</div>
+        <button class="btn btn-success btn-lg w-100 py-3" id="btnConfirmar" disabled>Confirmar venta</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>window.POS = {urlProducto: "{{ url_for('ventas.api_producto') }}", urlConfirmar: "{{ url_for('ventas.api_confirmar') }}"};</script>
+<script src="{{ url_for('static', filename='js/pos.js') }}"></script>
+{% endblock %}

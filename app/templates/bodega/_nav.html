@@ -1,0 +1,9 @@
+{% set ep = request.endpoint %}
+<ul class="nav nav-pills mb-3 flex-nowrap overflow-auto gap-1 sub-nav">
+  {% for destino, texto in [('bodega.inventario', 'Existencias'), ('bodega.lotes', 'Recepción de lotes'),
+                            ('bodega.transferencias', 'Transferencias'), ('bodega.mermas', 'Mermas'),
+                            ('bodega.conteos', 'Conteo físico'), ('bodega.movimientos', 'Movimientos'),
+                            ('bodega.catalogo_vista', 'Categorías y marcas')] %}
+    <li class="nav-item"><a class="nav-link text-nowrap {{ 'active' if ep == destino }}" href="{{ url_for(destino) }}">{{ texto }}</a></li>
+  {% endfor %}
+</ul>

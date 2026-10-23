@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "macros.html" import campo_sku %}
+{% block titulo %}Transferencias{% endblock %}
+{% block contenido %}
+<h1 class="h3">Bodega</h1>
+{% include "bodega/_nav.html" %}
+<div class="row g-3">
+  <div class="col-xl-5">
+    <div class="card p-4">
+      <h2 class="h5">Transferencia interna</h2>
+      <p class="small text-muted">Mueve unidades de la bodega central al salón de venta (vitrina). Solo lo que está en tienda se puede vender.</p>
+      <form method="post" class="js-form-sku">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-3">{{ campo_sku(sku) }}</div>
+        <div class="mb-3"><label class="form-label">Unidades</label>
+          <input class="form-control form-control-lg" type="number" name="cantidad" min="1" required inputmode="numeric"></div>
+        <div class="mb-3">
+          <div class="form-check"><input class="form-check-input" type="radio" name="origen" id="o1" value="BODEGA" checked>
+            <label class="form-check-label" for="o1">Bodega central → Salón de venta</label></div>
+          <div class="form-check"><input class="form-check-input" type="radio" name="origen" id="o2" value="TIENDA">
+            <label class="form-check-label" for="o2">Salón de venta → Bodega central (devolución)</label></div>
+        </div>
+        <button class="btn btn-marca btn-lg w-100">Transferir</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-xl-7">
+    <div class="card p-3">
+      <h2 class="h6">Últimas transferencias</h2>
+      <div class="table-responsive"><table class="table table-sm mb-0">
+        <thead><tr><th>Fecha</th><th>SKU</th><th>Producto</th><th class="text-end">Unid.</th><th>Desde → hacia</th><th>Responsable</th></tr></thead>
+        <tbody>
+        {% for m in recientes %}
+          <tr><td class="text-nowrap">{{ m.fecha_hora | fecha }}</td><td>{{ m.codigo_sku }}</td><td>{{ m.nombre }}</td><td class="text-end">{{ m.cantidad }}</td>
+            <td>{{ m.origen | etiqueta }} → {{ m.destino | etiqueta }}</td><td>{{ m.responsable }}</td></tr>
+        {% else %}<tr><td colspan="6" class="text-muted">Sin transferencias.</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titulo %}Movimientos{% endblock %}
+{% block contenido %}
+<h1 class="h3">Bodega</h1>
+{% include "bodega/_nav.html" %}
+<form class="row g-2 mb-3" method="get">
+  <div class="col-auto"><select class="form-select" name="tipo" onchange="this.form.submit()">
+    <option value="">Todos los movimientos</option>
+    {% for t in ['INGRESO_LOTE', 'TRANSFERENCIA', 'VENTA', 'MERMA', 'ANULACION_VENTA'] %}
+      <option value="{{ t }}" {{ 'selected' if tipo == t }}>{{ t | etiqueta }}</option>{% endfor %}
+  </select></div>
+</form>
+<div class="card"><div class="table-responsive">
+<table class="table table-sm table-hover mb-0">
+  <thead><tr><th>Fecha</th><th>Tipo</th><th>SKU</th><th>Producto</th><th class="text-end">Unidades</th><th>Origen → destino</th><th>Responsable</th></tr></thead>
+  <tbody>
+  {% for m in movimientos %}
+    <tr><td class="text-nowrap">{{ m.fecha_hora | fecha }}</td><td>{{ m.tipo_movimiento | etiqueta }}</td><td>{{ m.codigo_sku }}</td><td>{{ m.nombre }}</td>
+      <td class="text-end">{{ m.cantidad }}</td><td>{{ m.origen | etiqueta }} → {{ m.destino | etiqueta }}</td><td>{{ m.responsable }}</td></tr>
+  {% else %}<tr><td colspan="7" class="text-center text-muted py-4">Sin movimientos.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div>
+{% endblock %}

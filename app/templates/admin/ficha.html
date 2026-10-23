@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% from "macros.html" import badge_estado %}
+{% block titulo %}{{ t.nombre }} {{ t.apellido }}{% endblock %}
+{% block contenido %}
+{% set volver = 'ficha' %}
+<a href="{{ url_for('admin.trabajadores', estado=t.estado) }}" class="small">&larr; Trabajadores</a>
+<div class="d-flex flex-wrap justify-content-between align-items-center my-3 gap-2">
+  <h1 class="h3 mb-0">{{ t.nombre }} {{ t.apellido }} {{ badge_estado(t.estado) }}</h1>
+  <div class="d-flex gap-2 flex-wrap">
+    {% include "admin/_acciones.html" %}
+    {% if t.estado == 'ACTIVO' %}
+    <form method="post" action="{{ url_for('admin.restablecer', usuario_id=t.id) }}" class="d-inline"
+          onsubmit="return confirm('Se generará una nueva contraseña temporal. ¿Continuar?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-sm btn-outline-secondary">Restablecer credencial</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-5">
+    <div class="card p-3 h-100">
+      <h2 class="h6">Ficha personal</h2>
+      <dl class="row mb-0">
+        <dt class="col-5">RUT</dt><dd class="col-7">{{ t.rut | rut }}</dd>
+        <dt class="col-5">Cargo</dt><dd class="col-7">{{ t.cargo }}</dd>
+        <dt class="col-5">Correo</dt><dd class="col-7">{{ t.email or '—' }}</dd>
+        <dt class="col-5">Solicitó acceso</dt><dd class="col-7">{{ t.creado_en | fecha }}</dd>
+        <dt class="col-5">Aprobado</dt><dd class="col-7">{{ t.aprobado_en | fecha }}</dd>
+        {% if t.baja_en %}<dt class="col-5">Dado de baja</dt><dd class="col-7">{{ t.baja_en | fecha }}</dd>{% endif %}
+        <dt class="col-5">Último ingreso</dt><dd class="col-7">{{ t.ultimo_ingreso | fecha }}</dd>
+        {% if t.rol == 'VENDEDOR' %}
+        <dt class="col-5">Ventas</dt><dd class="col-7">{{ resumen.cantidad }} · {{ resumen.monto | pesos }}</dd>
+        {% endif %}
+      </dl>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card p-3 h-100">
+      <h2 class="h6">Actividad auditada</h2>
+      <div class="lista-scroll">
+      <table class="table table-sm mb-0"><tbody>
+        {% for a in actividad %}
+          <tr><td class="text-muted small text-nowrap">{{ a.fecha_hora | fecha }}</td><td><span class="badge text-bg-light border">{{ a.accion }}</span></td>
+            <td class="small">{{ a.entidad }} {{ a.detalle or '' }}</td></tr>
+        {% else %}<tr><td class="text-muted">Sin actividad registrada.</td></tr>{% endfor %}
+      </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if ventas %}
+<div class="card p-3 mb-3">
+  <h2 class="h6">Ventas</h2>
+  <div class="table-responsive">
+  <table class="table table-sm mb-0">
+    <thead><tr><th>Fecha</th><th>Boleta</th><th class="text-end">Unidades</th><th class="text-end">Total</th><th>Estado</th></tr></thead>
+    <tbody>
+    {% for v in ventas %}
+      <tr><td>{{ v.fecha_hora | fecha }}</td><td><a href="{{ url_for('ventas.boleta', venta_id=v.id) }}">{{ v.tipo_documento | etiqueta }} N° {{ v.folio }}</a></td>
+        <td class="text-end">{{ v.unidades or 0 }}</td><td class="text-end">{{ v.monto_total | pesos }}</td><td>{{ badge_estado(v.estado) }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
+
+{% if movimientos %}
+<div class="card p-3 mb-3">
+  <h2 class="h6">Movimientos de inventario</h2>
+  <div class="table-responsive">
+  <table class="table table-sm mb-0">
+    <thead><tr><th>Fecha</th><th>Tipo</th><th>SKU</th><th>Producto</th><th class="text-end">Unidades</th><th>Origen → destino</th></tr></thead>
+    <tbody>
+    {% for m in movimientos %}
+      <tr><td>{{ m.fecha_hora | fecha }}</td><td>{{ m.tipo_movimiento | etiqueta }}</td><td>{{ m.codigo_sku }}</td><td>{{ m.nombre }}</td>
+        <td class="text-end">{{ m.cantidad }}</td><td class="small">{{ m.origen | etiqueta }} → {{ m.destino | etiqueta }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
+{% if not ventas and not movimientos %}<p class="text-muted">Este trabajador aún no registra ventas ni movimientos.</p>{% endif %}
+{% endblock %}

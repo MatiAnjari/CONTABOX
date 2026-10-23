@@ -1,0 +1,62 @@
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro filtro_fechas(desde, hasta, extra='') %}
+<form class="row g-2 align-items-end mb-3" method="get">
+  <div class="col-6 col-md-auto"><label class="form-label small mb-0">Desde</label>
+    <input type="date" class="form-control" name="desde" value="{{ desde }}"></div>
+  <div class="col-6 col-md-auto"><label class="form-label small mb-0">Hasta</label>
+    <input type="date" class="form-control" name="hasta" value="{{ hasta }}"></div>
+  {{ extra }}
+  <div class="col-12 col-md-auto"><button class="btn btn-marca w-100">Filtrar</button></div>
+</form>
+{% endmacro %}
+
+{% macro badge_estado(estado) %}
+{% set clases = {'ACTIVO': 'success', 'PENDIENTE': 'warning', 'BAJA': 'secondary', 'RECHAZADO': 'danger',
+                 'CONFIRMADA': 'success', 'ANULADA': 'danger'} %}
+<span class="badge text-bg-{{ clases.get(estado, 'secondary') }}">{{ estado | etiqueta }}</span>
+{% endmacro %}
+
+{% macro campo_sku(valor='', ayuda=True) %}
+<label class="form-label">Código SKU</label>
+<div class="input-group">
+  <input class="form-control form-control-lg js-sku" name="codigo_sku" value="{{ valor }}" required autocomplete="off"
+         maxlength="50" placeholder="Escanea o escribe el código" autofocus>
+</div>
+{% if ayuda %}<div class="form-text js-sku-info">Con lector de código de barras: escanea y se completa solo.</div>{% endif %}
+{% endmacro %}
+
+{# Campos de catálogo: categoría, marca, perecible y garantía. p = producto existente (opcional). #}
+{% macro campos_catalogo(categorias, marcas, p=None) %}
+<div class="js-catalogo">
+  <div class="row">
+    <div class="col-sm-6 mb-3"><label class="form-label">Categoría</label>
+      <select class="form-select js-categoria" name="categoria_id" {{ 'required' if p }}>
+        <option value="">Selecciona…</option>
+        {% for c in categorias %}
+          <option value="{{ c.id }}" data-alimento="{{ c.es_alimento }}" data-garantia="{{ c.admite_garantia }}"
+                  data-meses="{{ c.garantia_meses_defecto }}" {{ 'selected' if p and p.categoria_id == c.id }}>{{ c.nombre }}</option>
+        {% endfor %}
+      </select></div>
+    <div class="col-sm-6 mb-3"><label class="form-label">Marca</label>
+      <input class="form-control" name="marca" list="listaMarcas" maxlength="100" value="{{ p.marca if p else '' }}"
+             placeholder="Escribe o elige" {{ 'required' if p }}>
+      <datalist id="listaMarcas">{% for m in marcas %}<option value="{{ m.nombre }}">{% endfor %}</datalist></div>
+  </div>
+  <div class="mb-3 js-perecible d-none">
+    <label class="form-label d-block">Tipo de alimento (obligatorio)</label>
+    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="es_perecible" id="per1" value="1" {{ 'checked' if p and p.es_perecible == 1 }}>
+      <label class="form-check-label" for="per1">Perecible (controla vencimiento)</label></div>
+    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="es_perecible" id="per0" value="0" {{ 'checked' if p and p.es_perecible == 0 }}>
+      <label class="form-check-label" for="per0">No perecible</label></div>
+  </div>
+  <div class="mb-3 js-garantia d-none">
+    <label class="form-label">Garantía (meses)</label>
+    <select class="form-select" name="meses_garantia">
+      {% for m in [0, 3, 6, 12, 18, 24, 36] %}
+        <option value="{{ m }}" {{ 'selected' if p and p.meses_garantia == m }}>{{ 'Sin garantía' if m == 0 else m ~ ' meses' }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+{% endmacro %}

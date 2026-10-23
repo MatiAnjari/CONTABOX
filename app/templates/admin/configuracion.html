@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block titulo %}Configuración{% endblock %}
+{% block contenido %}
+<h1 class="h3">Configuración de la PYME</h1>
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card p-4">
+      <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-3"><label class="form-label">RUT</label>
+          <input class="form-control" value="{{ empresa_actual.rut | rut }}" disabled></div>
+        <div class="mb-3"><label class="form-label">Razón social</label>
+          <input class="form-control" name="razon_social" value="{{ empresa_actual.razon_social }}" maxlength="150" required></div>
+        <div class="mb-3"><label class="form-label">Nombre de fantasía (lo ven todos los trabajadores)</label>
+          <input class="form-control" name="nombre_fantasia" value="{{ empresa_actual.nombre_fantasia }}" maxlength="120" required></div>
+        <div class="row">
+          <div class="col-md-8 mb-3"><label class="form-label">Dirección (aparece en boletas y facturas)</label>
+            <input class="form-control" name="direccion" value="{{ empresa_actual.direccion or '' }}" maxlength="200"></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Teléfono</label>
+            <input class="form-control" name="telefono" value="{{ empresa_actual.telefono or '' }}" maxlength="30"></div>
+        </div>
+        <div class="mb-3"><label class="form-label">Logo (PNG, máximo 5 MB)</label>
+          <input class="form-control" type="file" name="logo" accept="image/png"></div>
+        <button class="btn btn-marca">Guardar</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card p-4 text-center">
+      <h2 class="h6">Vista previa del login</h2>
+      {% if empresa_actual.logo_url %}<img src="{{ url_for('static', filename=empresa_actual.logo_url) }}" class="logo-login my-2 mx-auto" alt="Logo">{% endif %}
+      <div class="marca-login h4">{{ empresa_actual.nombre_fantasia }}</div>
+      <p class="small text-muted mb-2">Comparte este enlace con tus trabajadores: verán tu logo y nombre al ingresar o registrarse.</p>
+      <input class="form-control form-control-sm text-center" value="{{ enlace }}" readonly onclick="this.select()">
+      <a class="small mt-2" href="{{ enlace }}" target="_blank" rel="noopener">Abrir en otra pestaña</a>
+    </div>
+    <div class="card p-4 mt-3">
+      <h2 class="h6">Plan</h2>
+      <p class="mb-0 small">Mes gratis hasta el {{ empresa_actual.prueba_hasta | fecha }}.
+        {% if empresa_actual.suscripcion_hasta %}Suscripción vigente hasta el {{ empresa_actual.suscripcion_hasta | fecha }}.{% endif %}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

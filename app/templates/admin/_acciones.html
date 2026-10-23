@@ -1,0 +1,18 @@
+{# Botones según el estado del trabajador. Variables: t, volver (opcional). #}
+{% macro boton(accion, texto, clase, confirmar=None) %}
+<form method="post" action="{{ url_for('admin.cambiar_estado', usuario_id=t.id, accion=accion) }}" class="d-inline"
+      {% if confirmar %}onsubmit="return confirm('{{ confirmar }}')"{% endif %}>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="volver" value="{{ volver or '' }}">
+  <input type="hidden" name="estado_lista" value="{{ t.estado }}">
+  <button class="btn btn-sm {{ clase }}">{{ texto }}</button>
+</form>
+{% endmacro %}
+{% if t.estado == 'PENDIENTE' %}
+  {{ boton('aprobar', 'Aprobar', 'btn-success') }}
+  {{ boton('rechazar', 'Rechazar', 'btn-outline-danger', '¿Rechazar esta solicitud?') }}
+{% elif t.estado == 'ACTIVO' %}
+  {{ boton('baja', 'Dar de baja', 'btn-outline-danger', 'No podrá ingresar, pero se conserva todo su historial. ¿Continuar?') }}
+{% elif t.estado == 'BAJA' %}
+  {{ boton('reactivar', 'Reactivar', 'btn-outline-success') }}
+{% endif %}

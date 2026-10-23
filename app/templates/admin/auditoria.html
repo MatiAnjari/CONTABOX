@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "macros.html" import filtro_fechas %}
+{% block titulo %}Auditoría{% endblock %}
+{% block contenido %}
+<h1 class="h3">Auditoría del sistema</h1>
+<p class="text-muted small">Registro inmutable de cada operación: quién, qué entidad, cuándo y desde qué IP.</p>
+{% set extra %}
+  <div class="col-12 col-md-auto"><label class="form-label small mb-0">Entidad</label>
+    <select class="form-select" name="entidad"><option value="">Todas</option>
+      {% for e in entidades %}<option value="{{ e }}" {{ 'selected' if entidad == e }}>{{ e }}</option>{% endfor %}
+    </select></div>
+{% endset %}
+{{ filtro_fechas(desde, hasta, extra) }}
+<div class="card"><div class="table-responsive">
+  <table class="table table-sm table-hover mb-0">
+    <thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Entidad</th><th>ID</th><th>Detalle</th><th>IP</th></tr></thead>
+    <tbody>
+    {% for a in filas %}
+      <tr><td class="text-nowrap small">{{ a.fecha_hora.strftime('%d-%m-%Y %H:%M:%S') }}</td>
+        <td>{{ a.usuario or '—' }} <span class="text-muted small">{{ a.nombre_rol or '' }}</span></td>
+        <td><span class="badge text-bg-{{ 'danger' if a.accion == 'LOGIN_FALLIDO' else 'light border' }}">{{ a.accion }}</span></td>
+        <td>{{ a.entidad }}</td><td>{{ a.entidad_id or '' }}</td><td class="small">{{ a.detalle or '' }}</td><td class="small text-muted">{{ a.ip or '' }}</td></tr>
+    {% else %}<tr><td colspan="7" class="text-muted text-center py-4">Sin registros.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "macros.html" import campo_sku %}
+{% block titulo %}Conteo físico{% endblock %}
+{% block contenido %}
+<h1 class="h3">Bodega</h1>
+{% include "bodega/_nav.html" %}
+<div class="row g-3">
+  <div class="col-xl-5">
+    <div class="card p-4">
+      <h2 class="h5">Conteo físico de inventario</h2>
+      <p class="small text-muted">Cuenta las unidades reales (bodega + tienda) y regístralas. Con esto se calcula el % de precisión de inventario y se detecta el stock fantasma.</p>
+      <form method="post" class="js-form-sku">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-3">{{ campo_sku(sku) }}</div>
+        <div class="mb-3"><label class="form-label">Unidades contadas</label>
+          <input class="form-control form-control-lg" type="number" name="stock_fisico" min="0" required inputmode="numeric"></div>
+        <div class="mb-3"><label class="form-label">Observación <span class="small text-muted">(opcional)</span></label>
+          <input class="form-control" name="observacion" maxlength="255"></div>
+        <button class="btn btn-marca btn-lg w-100">Registrar conteo</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-xl-7">
+    <div class="card p-3">
+      <h2 class="h6">Últimos conteos</h2>
+      <div class="table-responsive"><table class="table table-sm mb-0">
+        <thead><tr><th>Fecha</th><th>SKU</th><th>Producto</th><th class="text-end">Sistema</th><th class="text-end">Físico</th><th class="text-end">Dif.</th><th>Responsable</th></tr></thead>
+        <tbody>
+        {% for c in recientes %}
+          {% set dif = c.stock_fisico - c.stock_sistema %}
+          <tr><td class="text-nowrap">{{ c.fecha_hora | fecha }}</td><td>{{ c.codigo_sku }}</td><td>{{ c.nombre }}</td><td class="text-end">{{ c.stock_sistema }}</td>
+            <td class="text-end">{{ c.stock_fisico }}</td><td class="text-end {{ 'text-danger' if dif != 0 else 'text-success' }}">{{ '%+d' % dif }}</td><td>{{ c.responsable }}</td></tr>
+        {% else %}<tr><td colspan="7" class="text-muted">Sin conteos registrados.</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

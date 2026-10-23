@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "macros.html" import campos_catalogo %}
+{% block titulo %}{{ p.nombre }}{% endblock %}
+{% block contenido %}
+<a href="{{ url_for('bodega.inventario') }}" class="small">&larr; Existencias</a>
+<h1 class="h3 mt-2">{{ p.nombre }} <span class="text-muted fs-6">{{ p.codigo_sku }} · {{ p.marca }} · {{ p.categoria }}</span></h1>
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3"><div class="card p-3"><span class="small text-muted">Bodega</span><span class="kpi">{{ p.stock_bodega }}</span></div></div>
+  <div class="col-6 col-md-3"><div class="card p-3"><span class="small text-muted">Tienda</span><span class="kpi">{{ p.stock_tienda }}</span></div></div>
+  <div class="col-6 col-md-3"><div class="card p-3"><span class="small text-muted">Total en cajas de {{ p.unidades_por_bulto }}</span><span class="kpi fs-4">{{ cajas }}</span></div></div>
+  <div class="col-6 col-md-3"><div class="card p-3"><span class="small text-muted">Precio venta</span><span class="kpi">{{ p.precio_venta | pesos }}</span></div></div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card p-4">
+      <h2 class="h6">Editar producto</h2>
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-3"><label class="form-label">Nombre</label><input class="form-control" name="nombre" value="{{ p.nombre }}" maxlength="150" required></div>
+        {{ campos_catalogo(categorias, marcas, p) }}
+        <div class="row">
+          <div class="col-4 mb-3"><label class="form-label">Precio</label><input class="form-control" name="precio_venta" value="{{ '%.0f' % p.precio_venta }}" inputmode="decimal" required></div>
+          <div class="col-4 mb-3"><label class="form-label">U. por caja</label><input class="form-control" type="number" min="1" name="unidades_por_bulto" value="{{ p.unidades_por_bulto }}" required></div>
+          <div class="col-4 mb-3"><label class="form-label">Stock crítico</label><input class="form-control" type="number" min="0" name="stock_critico" value="{{ p.stock_critico }}" required></div>
+        </div>
+        <button class="btn btn-marca">Guardar</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card p-3 mb-3">
+      <h2 class="h6">Lotes (salen primero los que vencen antes)</h2>
+      <div class="table-responsive"><table class="table table-sm mb-0">
+        <thead><tr><th>Lote</th><th>Ingreso</th><th>Vence</th><th class="text-end">Cajas × u.</th><th class="text-end">Disponibles</th><th class="text-end">Costo u.</th><th class="text-end">Inversión</th></tr></thead>
+        <tbody>{% for l in lotes %}
+          <tr><td>{{ l.numero_lote }}</td><td>{{ l.fecha_ingreso | fecha }}</td><td>{{ l.fecha_vencimiento | dia }}</td>
+            <td class="text-end">{{ l.cantidad_bultos }} × {{ l.unidades_por_bulto }}</td><td class="text-end">{{ l.cantidad_disponible }} / {{ l.cantidad_ingresada }}</td>
+            <td class="text-end">{{ l.costo_unitario | pesos }}</td><td class="text-end">{{ l.inversion_total | pesos }}</td></tr>
+        {% endfor %}</tbody></table></div>
+    </div>
+    <div class="card p-3">
+      <h2 class="h6">Kardex</h2>
+      <div class="table-responsive"><table class="table table-sm mb-0">
+        <thead><tr><th>Fecha</th><th>Tipo</th><th class="text-end">Unid.</th><th>Origen → destino</th><th>Responsable</th></tr></thead>
+        <tbody>{% for m in movimientos %}
+          <tr><td>{{ m.fecha_hora | fecha }}</td><td>{{ m.tipo_movimiento | etiqueta }}</td><td class="text-end">{{ m.cantidad }}</td>
+            <td>{{ m.origen | etiqueta }} → {{ m.destino | etiqueta }}</td><td>{{ m.responsable }}</td></tr>
+        {% endfor %}</tbody></table></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
